@@ -297,4 +297,19 @@ QWidget *setupUi(const std::string &name, Object *object)
     return panel;
 }
 
+struct setup_ui_visitor
+{
+    QLayout *layout;
+
+    setup_ui_visitor(QLayout *layout) : layout(layout)
+    {
+    }
+
+    template <class Object>
+    void operator() (const std::string &name, Object *object) const
+    {
+        layout->addWidget(setupUi(name, object));
+    }
+};
+
 #endif // OBJCPP_UI_H_

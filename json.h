@@ -48,6 +48,21 @@ picojson::value writeJSON(Object *object)
     return picojson::value(writer.json);
 }
 
+struct write_json_visitor
+{
+    picojson::object &json;
+
+    write_json_visitor(picojson::object &json) : json(json)
+    {
+    }
+
+    template <class Object>
+    void operator() (const std::string &name, Object *object) const
+    {
+        json.insert(picojson::object::value_type(name, writeJSON(object)));
+    }
+};
+
 struct json_reader : public property_visitor
 {
     mutable picojson::value &json;
@@ -91,5 +106,20 @@ void readJSON(Object *object, picojson::value &json)
     json_reader reader(json);
     object->accept(reader);
 }
+
+struct read_json_visitor
+{
+    picojson::value &json;
+
+    read_json_visitor(picojson::value &json) : json(json)
+    {
+    }
+
+    template <class Object>
+    void operator() (const std::string &name, Object *object) const
+    {
+        readJSON(object, json.get(name));
+    }
+};
 
 #endif // OBJCPP_JSON_H_
