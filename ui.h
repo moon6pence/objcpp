@@ -1,6 +1,7 @@
 #ifndef OBJCPP_UI_H_
 #define OBJCPP_UI_H_
 
+#include "property.h"
 #include <QtWidgets>
 
 struct QuickDialog : public property_visitor
