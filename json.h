@@ -73,22 +73,34 @@ struct json_reader : public property_visitor
 
     void visit(property<bool> &property) const
     {
-        property.set(json.get(property.name()).get<bool>());
+        if (json.contains(property.name()))
+            property.set(json.get(property.name()).get<bool>());
+        else
+            std::cout << "WARNING: Cannot find the property " << property.name() << " in JSON.";
     }
 
     void visit(property<int> &property) const
     {
-        property.set(static_cast<int>(json.get(property.name()).get<double>()));
+        if (json.contains(property.name()))
+            property.set(static_cast<int>(json.get(property.name()).get<double>()));
+        else
+            std::cout << "WARNING: Cannot find the property " << property.name() << " in JSON.";
     }
 
     void visit(property<float> &property) const
     {
-        property.set(static_cast<int>(json.get(property.name()).get<double>()));
+        if (json.contains(property.name()))
+            property.set(static_cast<int>(json.get(property.name()).get<double>()));
+        else
+            std::cout << "WARNING: Cannot find the property " << property.name() << " in JSON.";
     }
 
     void visit(property<std::string> &property) const
     {
-        property.set(json.get(property.name()).get<std::string>());
+        if (json.contains(property.name()))
+            property.set(json.get(property.name()).get<std::string>());
+        else
+            std::cout << "WARNING: Cannot find the property " << property.name() << " in JSON.";
     }
 
     void visit(property<Object> &property) const
@@ -118,7 +130,12 @@ struct read_json_visitor
     template <class Object>
     void operator() (const std::string &name, Object *object) const
     {
-        readJSON(object, json.get(name));
+        picojson::value json_object = json.get(name);
+
+        if (json_object.is<picojson::object>())
+            readJSON(object, json.get(name));
+        else
+            std::cout << "WARNING: Cannot find the object " << name << " in JSON." << std::endl;
     }
 };
 
