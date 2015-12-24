@@ -3,6 +3,8 @@
 
 #include "picojson.h"
 
+#include <fstream>
+
 struct json_writer : public property_visitor
 {
     mutable picojson::object json;
@@ -61,13 +63,20 @@ struct write_json_visitor
     {
         json.insert(picojson::object::value_type(name, writeJSON(object)));
     }
+
+    void write_file(const std::string &jsonfile)
+    {
+        std::fstream file(jsonfile, std::ios::out);
+        file << picojson::value(json).serialize(true);
+        file.close();
+    }
 };
 
 struct json_reader : public property_visitor
 {
-    mutable picojson::value &json;
+    const picojson::value &json;
 
-    json_reader(picojson::value &json) : json(json)
+    json_reader(const picojson::value &json) : json(json)
     {
     }
 
@@ -113,7 +122,7 @@ struct json_reader : public property_visitor
 };
 
 template <class Object>
-void readJSON(Object *object, picojson::value &json)
+void readJSON(Object *object, const picojson::value &json)
 {
     json_reader reader(json);
     object->accept(reader);
@@ -121,16 +130,41 @@ void readJSON(Object *object, picojson::value &json)
 
 struct read_json_visitor
 {
-    picojson::value &json;
+    picojson::value json;
 
     read_json_visitor(picojson::value &json) : json(json)
     {
     }
 
+    read_json_visitor(const std::string &jsonfile)
+    {
+        std::fstream file(jsonfile, std::ios::in);
+        if (!file.is_open())
+        {
+            std::cerr << "ERROR: Failed to read " << jsonfile << std::endl;
+            return;
+        }
+
+        file >> json;
+        file.close();
+
+        std::string err = picojson::get_last_error();
+        if (!err.empty())
+        {
+            std::cerr << "Failed to parse " << jsonfile << ": " << err << std::endl;
+            return;
+        }
+    }
+
+    bool is_open()
+    {
+        return !json.is<picojson::null>();
+    }
+
     template <class Object>
     void operator() (const std::string &name, Object *object) const
     {
-        picojson::value json_object = json.get(name);
+        const picojson::value &json_object = json.get(name);
 
         if (json_object.is<picojson::object>())
             readJSON(object, json.get(name));
