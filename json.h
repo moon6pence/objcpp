@@ -124,6 +124,12 @@ struct json_reader : public property_visitor
 template <class Object>
 void readJSON(Object *object, const picojson::value &json)
 {
+    if (!json.is<picojson::object>())
+    {
+        std::cout << "WARNING: Cannot read the json object" << std::endl;
+        return;
+    }
+
     json_reader reader(json);
     object->accept(reader);
 }
