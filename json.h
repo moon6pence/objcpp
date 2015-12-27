@@ -99,7 +99,7 @@ struct json_reader : public property_visitor
     void visit(property<float> &property) const
     {
         if (json.contains(property.name()))
-            property.set(static_cast<int>(json.get(property.name()).get<double>()));
+            property.set(static_cast<float>(json.get(property.name()).get<double>()));
         else
             std::cout << "WARNING: Cannot find the property " << property.name() << " in JSON.";
     }
